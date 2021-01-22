@@ -30,6 +30,20 @@ def user(accounts):
     yield accounts[3]
 
 @pytest.fixture
+def controllerFactoryV1(gov, StrategyControllerV2):
+    def factory():
+        controller = gov.deploy(StrategyControllerV2, "0x0000000000000000000000000000000000000000")
+        return controller
+    yield factory
+
+@pytest.fixture
+def vaultFactoryV1(gov, yVault):
+    def factory(token, controller):
+        vault = gov.deploy(yVault, token, controller)
+        return vault
+    yield factory
+
+@pytest.fixture
 def vaultFactory(pm, gov, rewards, guardian):
     def factory(token):
         Vault = pm(config["dependencies"][0]).Vault

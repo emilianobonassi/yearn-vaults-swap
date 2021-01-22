@@ -43,6 +43,35 @@ def generate_permit(vault, owner: Account, spender: Account, value, nonce, deadl
 
     return encode_structured_data(data)
 
+def test_swap_v1(vaultFactory, vaultFactoryV1, controllerFactoryV1, Token, StrategyDForceDAI, user, vaultSwap, gov, accounts):
+    token = Token.at("0x6B175474E89094C44Da98b954EedeAC495271d0F") # DAI
+    tokenOwner = accounts.at("0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643", force=True) # whale for DAI
+
+    # Create a V1 Vault
+    controller = controllerFactoryV1()
+    strategy = gov.deploy(StrategyDForceDAI, controller)
+    vaultA = vaultFactoryV1(token, controller)
+    controller.setStrategy(token, strategy, {"from": gov})
+
+    # Create target V2 vault
+    vaultB = vaultFactory(token)
+
+    # Give user some funds
+    tokenAmount = "10 ether"
+    token.transfer(user, tokenAmount, {"from": tokenOwner})
+
+    # Deposit in vaultA
+    token.approve(vaultA, tokenAmount, {"from": user})
+    vaultA.deposit(tokenAmount, {"from": user})
+
+    # Migrate in vaultB
+    balanceVaultA = vaultA.balanceOf(user)
+
+    vaultA.approve(vaultSwap, balanceVaultA, {"from": user})
+    vaultSwap.swap(vaultA, vaultB, {"from": user})
+
+    assert vaultA.balanceOf(user) == 0
+    assert vaultB.balanceOf(user) > 0
 
 def test_swap_approve(vaultFactory, tokenFactory, tokenOwner, user, vaultSwap):
     token = tokenFactory()
