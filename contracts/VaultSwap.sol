@@ -74,7 +74,7 @@ contract VaultSwap {
         address vaultFrom,
         address vaultTo,
         uint256 shares
-    ) onlyCompatibleVaults(vaultFrom, vaultTo) internal {
+    ) onlyCompatibleVaults(vaultFrom, vaultTo) virtual internal {
 
         // Transfer in vaultFrom shares
         IVaultAPI vf = IVaultAPI(vaultFrom);
